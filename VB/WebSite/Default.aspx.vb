@@ -8,8 +8,7 @@ Imports System.Web.UI.WebControls
 Imports System.Web.UI.WebControls.WebParts
 Imports System.Web.UI.HtmlControls
 Imports DevExpress.Xpo
-Imports DevExpress.Web.ASPxEditors
-Imports DevExpress.Web.ASPxGridView
+Imports DevExpress.Web
 
 Partial Public Class _Default
     Inherits System.Web.UI.Page
@@ -29,7 +28,7 @@ Partial Public Class _Default
         txt.SetClientSideEventHandler("ValueChanged", String.Format(CallbackArgumentFormat, container.KeyValue, container.Column.FieldName))
     End Sub
 
-    Protected Sub cb_Callback(ByVal source As Object, ByVal e As DevExpress.Web.ASPxCallback.CallbackEventArgs)
+    Protected Sub cb_Callback(ByVal source As Object, ByVal e As DevExpress.Web.CallbackEventArgs)
         Dim p() As String = e.Parameter.Split("|"c)
 
         Dim key As Int32 = Convert.ToInt32(p(0))

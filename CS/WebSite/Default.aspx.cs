@@ -8,8 +8,7 @@ using System.Web.UI.WebControls;
 using System.Web.UI.WebControls.WebParts;
 using System.Web.UI.HtmlControls;
 using DevExpress.Xpo;
-using DevExpress.Web.ASPxEditors;
-using DevExpress.Web.ASPxGridView;
+using DevExpress.Web;
 
 public partial class _Default : System.Web.UI.Page
 {
@@ -31,7 +30,7 @@ public partial class _Default : System.Web.UI.Page
             container.Column.FieldName));
     }
 
-    protected void cb_Callback(object source, DevExpress.Web.ASPxCallback.CallbackEventArgs e)
+    protected void cb_Callback(object source, DevExpress.Web.CallbackEventArgs e)
     {
         String[] p = e.Parameter.Split('|');
 
