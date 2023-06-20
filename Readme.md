@@ -1,25 +1,105 @@
-<!-- default badges list -->
-![](https://img.shields.io/endpoint?url=https://codecentral.devexpress.com/api/v1/VersionRange/128541910/13.1.4%2B)
-[![](https://img.shields.io/badge/Open_in_DevExpress_Support_Center-FF7200?style=flat-square&logo=DevExpress&logoColor=white)](https://supportcenter.devexpress.com/ticket/details/E2333)
-[![](https://img.shields.io/badge/📖_How_to_use_DevExpress_Examples-e9f6fc?style=flat-square)](https://docs.devexpress.com/GeneralInformation/403183)
-<!-- default badges end -->
-<!-- default file list -->
-*Files to look at*:
-
-* [MyObject.cs](./CS/WebSite/App_Code/MyObject.cs) (VB: [MyObject.vb](./VB/WebSite/App_Code/MyObject.vb))
-* [XpoHelper.cs](./CS/WebSite/App_Code/XpoHelper.cs) (VB: [XpoHelper.vb](./VB/WebSite/App_Code/XpoHelper.vb))
-* [Default.aspx](./CS/WebSite/Default.aspx) (VB: [Default.aspx](./VB/WebSite/Default.aspx))
-* [Default.aspx.cs](./CS/WebSite/Default.aspx.cs) (VB: [Default.aspx.vb](./VB/WebSite/Default.aspx.vb))
-<!-- default file list end -->
-# How to perform ASPxGridView instant updating using different editors in the DataItem template
+# Grid View for ASP.NET Web Forms - How to use template editors to update grid data
 <!-- run online -->
 **[[Run Online]](https://codecentral.devexpress.com/e2333/)**
 <!-- run online end -->
 
+This example demonstrates how to create a templated column, add an editor to the template, and update the data source on a callback when a user changes the editor's value.
 
-<p><strong>UPDATED:</strong><br /><br />Starting with version 13.2, the ASPxGridView control offers the basic "Batch Editing Mode" functionality that allows accomplishing a similar task with less effort and does not require so much extra code. See the <a href="https://community.devexpress.com/blogs/aspnet/archive/2013/12/16/asp-net-webforms-amp-mvc-gridview-batch-edit-what-39-s-new-in-13-2.aspx">ASP.NET WebForms & MVC: GridView Batch Edit </a>blog post to learn more about this new functionality.<br /><br />Starting with version 14.1, the ASPxGridView control offers advanced "Batch Editing Mode" programming options.<br /><br />You can find a standalone DB-independent solution in our Code Examples base at:<br /><a href="https://www.devexpress.com/Support/Center/p/E5045">ASPxGridView - A simple Batch Editing implementation</a><br /><br />If you have version v14.1+ available, consider using the built-in functionality instead of the approach detailed below.<br />If you need further assistance with this functionality, please create a new ticket in our Support Center.<br /><br />The sample demonstrates how to send individual callbacks to the database to perform instant editing of the datatable without switching the grid to Edit mode. The XPO is used for demonstrating purposes only. If the SqlDataSource is used, it will be enough to create corresponding SQL statements and perform partial updating manually.</p>
-<p><strong>See Also:</strong><br /> <a href="https://www.devexpress.com/Support/Center/p/E129">Implement on-demand data posting (batch data update)</a><br /> <a href="https://www.devexpress.com/Support/Center/p/E2313">How to update a Boolean field using the ASPxCheckBox in a DataItem template</a><br /> <a href="https://www.devexpress.com/Support/Center/p/K18282">The general technique of using the Init/Load event handler</a><br /> <a href="https://www.devexpress.com/Support/Center/p/E324">How to implement the multi-row editing feature in the ASPxGridView</a><br /> <a href="https://www.devexpress.com/Support/Center/p/E1468">Custom client-side logic implementation in the grid with multi-row editing</a></p>
+> **Note**
+> Starting with v13.2, you can use the batch edit functionality to edit grid data on the client and send it to the server on a single request: [Grid in Batch Edit Mode](https://docs.devexpress.com/AspNet/16443/components/grid-view/concepts/edit-data/batch-edit-mode).
 
-<br/>
+![Use template editors to update grid data](TemplateEditors.png)
 
+## Overview
 
+Specify a column's [DataItemTemplate](https://docs.devexpress.com/AspNet/DevExpress.Web.GridViewDataColumn.DataItemTemplate) property and add an editor to the template. Handle the editor's server-side `Init` event and do the following in the handler:
+
+* Access the template container to get the row's key value and the column's field name.
+* Assign a client-side `ValueChanged` event handler to the editor and pass the corresponding grid values as parameters.
+
+```aspx
+<dx:GridViewDataTextColumn FieldName="Item" VisibleIndex="2">
+    <DataItemTemplate>
+        <dx:ASPxComboBox ID="cmbItem" runat="server" ValueType="System.Int32" Value='<%#
+        Eval("Item") %>' OnInit="editor_Init">
+            <Items>
+                <!-- ... -->
+            </Items>
+        </dx:ASPxComboBox>
+    </DataItemTemplate>
+</dx:GridViewDataTextColumn>
+```
+
+```cs
+protected void editor_Init(object sender, EventArgs e) {
+    ASPxEdit txt = sender as ASPxTextEdit;
+    GridViewDataItemTemplateContainer container = txt.NamingContainer as GridViewDataItemTemplateContainer;
+
+    txt.SetClientSideEventHandler("ValueChanged", String.Format(CallbackArgumentFormat,
+        container.KeyValue,
+        container.Column.FieldName));
+}
+```
+
+In the editor's `ValueChanged` event handler, get the new editor's value and pass it to the server on a callback. To send a callback to the server, use a callback control and call its `PerformCallback` method. In the server-side `Callback` event handler, assign the editor's value to the XPO object and update the data source.
+
+```js
+ function OnValueChanged(s, e, key, field) {
+    var value = s.GetValue();
+    if(s instanceof ASPxClientTextBox) { // encode text
+        s.SetText(encodeHtml(s.GetText()));
+        value = s.GetText();
+    }
+    if(s instanceof ASPxClientDateEdit)
+        value = s.GetText();
+    var param = key + "|" + field + "|" + value;
+    cb.PerformCallback(param);
+}
+```
+
+```cs
+protected void cb_Callback(object source, DevExpress.Web.CallbackEventArgs e) {
+    String[] p = e.Parameter.Split('|');
+
+    Int32 key = Convert.ToInt32(p[0]);
+    String field = p[1];
+    Object value = p[2];
+
+    MyObject obj = session.GetObjectByKey<MyObject>(key);
+
+    switch (field) {
+        case "Title":
+            if (value.ToString() == "null")
+                value = String.Empty;
+            break;
+
+        case "Item":
+            value = Convert.ToInt32(value);
+            break;
+
+        case "SomeDate":
+            DateTime result = DateTime.Now;
+            if (DateTime.TryParse(value.ToString(), out result))
+                value = result;
+            else
+                value = DateTime.Now;
+            break;
+    }
+
+    obj.SetMemberValue(field, value);
+    obj.Save();
+}
+```
+
+## Files to Review
+
+* [Default.aspx](./CS/WebSite/Default.aspx) (VB: [Default.aspx](./VB/WebSite/Default.aspx))
+* [Default.aspx.cs](./CS/WebSite/Default.aspx.cs) (VB: [Default.aspx.vb](./VB/WebSite/Default.aspx.vb))
+
+## Documentation
+
+* [Gid View Templates](https://docs.devexpress.com/AspNet/3718/components/grid-view/concepts/templates)
+
+## More Examples
+
+* [How to update a boolean field using the ASPxCheckBox in a data item template](https://github.com/DevExpress-Examples/how-to-update-a-boolean-field-using-the-aspxcheckbox-in-a-dataitem-template-e2313)
