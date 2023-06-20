@@ -5,7 +5,7 @@
 <!-- default badges end -->
 # Grid View for ASP.NET Web Forms - How to use template editors to update grid data
 <!-- run online -->
-**[[Run Online]](https://codecentral.devexpress.com/e2333/)**
+**[[Run Online]](https://codecentral.devexpress.com/128541910/)**
 <!-- run online end -->
 
 This example demonstrates how to create a templated column, add an editor to the template, and update the data source on a callback when a user changes the editor's value.
