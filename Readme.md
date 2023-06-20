@@ -5,7 +5,7 @@
 
 This example demonstrates how to create a templated column, add an editor to the template, and update the data source on a callback when a user changes the editor's value.
 
-> **Note**
+> **Note**  
 > In v13.2 and higher, you can use the batch edit functionality to edit grid data on the client and send it to the server on a single request: [Grid in Batch Edit Mode](https://docs.devexpress.com/AspNet/16443/components/grid-view/concepts/edit-data/batch-edit-mode).
 
 ![Use template editors to update grid data](TemplateEditors.png)
