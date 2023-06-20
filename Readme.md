@@ -13,7 +13,7 @@
 <!-- default file list end -->
 # How to perform ASPxGridView instant updating using different editors in the DataItem template
 <!-- run online -->
-**[[Run Online]](https://codecentral.devexpress.com/e2333/)**
+**[[Run Online]](https://codecentral.devexpress.com/128541910/)**
 <!-- run online end -->
 
 
