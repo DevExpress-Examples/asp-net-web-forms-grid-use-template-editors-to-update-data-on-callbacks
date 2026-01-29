@@ -13,11 +13,12 @@ Imports DevExpress.Web
 Partial Public Class _Default
 	Inherits System.Web.UI.Page
 
-	Private session As Session = XpoHelper.GetNewSession()
+'INSTANT VB NOTE: The field session was renamed since Visual Basic does not allow fields to have the same name as other class members:
+	Private session_Conflict As Session = XpoHelper.GetNewSession()
 
 	Private Const CallbackArgumentFormat As String = "function (s, e) {{ OnValueChanged(s,e, {0}, '{1}'); }}"
 	Protected Sub Page_Init(ByVal sender As Object, ByVal e As EventArgs)
-		xds.Session = session
+		xds.Session = session_Conflict
 	End Sub
 
 	Protected Sub editor_Init(ByVal sender As Object, ByVal e As EventArgs)
@@ -34,7 +35,7 @@ Partial Public Class _Default
 		Dim field As String = p(1)
 		Dim value As Object = p(2)
 
-		Dim obj As MyObject = session.GetObjectByKey(Of MyObject)(key)
+		Dim obj As MyObject = session_Conflict.GetObjectByKey(Of MyObject)(key)
 
 		Select Case field
 			Case "Title"
